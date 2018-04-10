@@ -1,0 +1,47 @@
+global proc float[] getEigenVector(float $m[], float $e1)
+{
+	float $v[3]; //output eigen vector
+	float $a = 1;
+	float $b = -$m[0] - $m[4] - $m[8];
+	float $c =
+	- $m[1]*$m[3] - $m[2]*$m[6] - $m[5]*$m[7] 
+	+ $m[0]*$m[4] + $m[4]*$m[8] + $m[0]*$m[8]; 
+	float $d =
+	- $m[0]*$m[4]*$m[8] + $m[0]*$m[5]*$m[7] 
+	- $m[1]*$m[5]*$m[6] + $m[1]*$m[3]*$m[8]
+	- $m[2]*$m[3]*$m[7] + $m[2]*$m[4]*$m[6];
+
+	float $bb = $b + $a  * $e1;
+	float $cc = $c + $bb * $e1; 
+
+	float $a2[9], $a1[9], $e[9], $e2[2];
+	$a2 = mat_mul($m,$m);
+	$a1 = mat_scale($m, $bb);
+	$a2 = mat_add($a2,$a1);
+	$e  = mat_identity();
+	$e2 = mat_scale($e,$cc);
+	$a2 = mat_add($a2,$e2);
+	$v[0] = $a2[0];      
+	$v[1] = $a2[3];      
+	$v[2] = $a2[6];
+	if(abs($v[0])+abs($v[1])+abs($v[2]) <1.0e-10)
+	{
+		$v[0] = $a2[1];      
+		$v[1] = $a2[4];      
+		$v[2] = $a2[7];
+	}
+	if(abs($v[0])+abs($v[1])+abs($v[2]) <1.0e-10)
+	{
+		$v[0] = $a2[2];      
+		$v[1] = $a2[5];      
+		$v[2] = $a2[8];
+	}
+	if(abs($v[0])+abs($v[1])+abs($v[2]) > 0)
+	{ 
+		float $length = sqrt($v[0] * $v[0] +$v[1] * $v[1] + $v[2] * $v[2] );
+		$v[0] /= $length;
+		$v[1] /= $length;
+		$v[2] /= $length;
+	}
+	return $v;    
+}

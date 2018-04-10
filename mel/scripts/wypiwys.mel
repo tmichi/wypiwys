@@ -1,0 +1,222 @@
+//
+// wypiwysCmd.mel - an implementation of view point registration by painting.
+// How to use:
+//   Paint vertices which want to see.
+//   Run wypiwys procedure.
+// System requirement : 
+// Maya 5.0 or higher ( I believe it works well on lower version)
+//
+// Author : Takashi Michikawa <michi(at)den.rcast.u-tokyo.ac.jp>
+// (c) 2008 Takashi Michikawa 
+//
+global proc int wypiwys()
+{	
+	string $curCamera = getCurrentCamera();
+	print ("current Camera Name:"+$curCamera+"\n");
+	string $sl[] = `ls -sl`;
+	string $vertexList[] = listAllVertices($sl);
+	int $nVert = size($vertexList);
+	int $i, $j;
+	if($nVert == 0 ) 
+	{
+		print "Error. No vertices were selected\n";
+		return -1;
+	}
+	
+	float $weight[];    // weight;
+	vector $position[]; // vertex position
+	//compute weight for each vertex
+	for( $i=0; $i<$nVert; $i++)
+	{
+		$position[$i] = getPosition($vertexList[$i]);
+		$weight[$i] = 0;
+		string $buf[];
+		tokenize $vertexList[$i] "." $buf;
+		string $objName = $buf[0];
+		
+		string $neighborFaces[] = `polyInfo -vf $vertexList[$i]`;
+		tokenize $neighborFaces[0] $buf;
+		int $end = size($buf);
+		for($j = 2 ; $j < $end ; $j += 1)
+		{
+			$weight[$i] += getPolygonArea($objName+".f["+ $buf[$j ]+"]");
+		}
+	}
+	
+	//
+	vector $curEye = getcurEye($curCamera);
+	vector $curLookAt = getcurLookAt($curCamera);
+	vector $curUp = getcurUp($curCamera);
+	float  $fieldOfView = `camera  -q -hfv $curCamera`;
+	print ("fov(rad):"+$fieldOfView+"\n");
+	
+	print ("current Eye:"+$curEye+"\n");
+	print ("current Center:"+$curLookAt+"\n");
+	print ("current Up:"+$curUp+"\n");
+
+	//compute new center
+	vector $newLookAt = <<0,0,0>>;;
+	float $areaSum = 0;
+	for( $i=0 ; $i < $nVert ; $i++)
+	{
+		vector $p =  $weight[ $i ] *  $position[$i];
+		$newLookAt += $p;	
+		$areaSum += $weight[$i];
+	}
+	if($areaSum > 0.001)
+	{
+		$newLookAt /=  $areaSum;
+	}
+	else
+	{
+		
+		print("warning. we used normal center point due to area = "+$areaSum+"\n");
+		for( $i=0 ; $i < $nVert ; $i++)
+		{
+			vector $p = $position[$i];
+			$newLookAt += $p;	
+		}
+		$newLookAt /= $nVert;
+	}
+	print ("center:"+$newLookAt+"\n");
+	
+	//compute radius
+	float $rad = 0;
+	for( $i=0 ; $i < $nVert ; $i++)
+	{
+		vector $p =  $position[$i] - $newLookAt;
+		float $newrad = mag($p);
+		if($newrad > $rad) $rad = $newrad;
+	}
+	print ("Radius of the bounding sphere "+$rad+".\n");
+	
+	//compute EyeVector
+	vector $newRay = getRayVector($weight, $position, $newLookAt);
+	
+	vector $curRay = $curEye - $curLookAt;
+	if(dot($curRay, $newRay) < 0 ) $newRay *= -1;
+	
+	
+	float $fittingFactor = 1.5;
+	float $curRayLength = mag($newRay);
+	float $newRayLength = $fittingFactor * $rad / sin(deg_to_rad($fieldOfView));
+	
+	$newRay = unit($newRay);
+	$curRay = unit($curRay);
+	
+	float  $angle = angle($curRay, $newRay);
+	vector $axis = cross($curRay, $newRay);
+	print ("new ray:"+$newRay+"\n");
+	print ("angle:"+$angle+"\n");
+	
+	int $step = 1;
+	for($i = 0 ; $i <= $step ; $i++)
+	{
+		float $t = $i * 1.0 / $step;
+		
+		vector $interpLookAt = (1.0-$t) * $curLookAt + $t * $newLookAt;
+		
+		vector $newUp  = rot($curUp, $axis, $t * $angle);
+		$newUp = unit($newUp);
+	
+		float $interpRayLength =  (1.0 - $t ) * $curRayLength + $t * $newRayLength;
+		vector $interpRay  = rot($curRay, $axis, $t * $angle);
+		vector $interpEye = $interpRayLength * $interpRay + $interpLookAt;
+		
+
+	//Œ‹‰Ê‚Ì‘ã“ü
+		float $ex = $interpEye.x;
+		float $ey = $interpEye.y;
+		float $ez = $interpEye.z;
+	
+		float $cx = $interpLookAt.x;
+		float $cy = $interpLookAt.y;
+		float $cz = $interpLookAt.z;
+	
+		float $ux = $newUp.x;
+		float $uy = $newUp.y;
+		float $uz = $newUp.z;
+	
+	//
+	viewPlace -eye $ex $ey $ez $curCamera;
+	viewPlace -lookAt $cx $cy $cz $curCamera;
+	viewPlace -up  $ux $uy $uz $curCamera;
+	}
+	return 1;
+}
+
+global proc vector getRayVector(float $weight[], vector $point[], vector $center)
+{
+	vector $ray;
+	matrix $mat[3][3] = <<0,0,0;
+	                      0,0,0;
+	                      0,0,0>>;
+	int $i;
+	int $nVert = size($weight);
+	print ("num : "+$nVert+"\n");
+	if($nVert == size($point) )
+	{
+		//create co-variance 
+		for($i = 0 ; $i < $nVert ; $i++)
+		{
+			vector $p = $point[$i] - $center;	//normalize
+			matrix $m[3][3] = <<$p.x * $p.x ,$p.x * $p.y ,$p.x * $p.z;
+								$p.y * $p.x ,$p.y * $p.y ,$p.y * $p.z;
+								$p.z * $p.x ,$p.z * $p.y ,$p.z * $p.z >>;
+			int $j, $k;
+			for($j = 0 ; $j < 3 ; $j ++)
+			{
+				for($k = 0 ; $k < 3 ; $k++)
+				{
+					float $a = $m[$j][$k];
+					$mat[$j][$k] = $mat[$j][$k] + $a; 	
+				}
+			}
+		}
+		float $matrix[9];
+		for($j = 0 ; $j < 3 ; $j ++)
+		{
+			for($k = 0 ; $k < 3 ; $k++)
+			{
+				$matrix[$j*3+$k] = $mat[$j][$k]; 	
+			}
+		}
+		
+		float $eigen[] = getEigenValues($matrix);
+		float $vec[] = getEigenVector($matrix,$eigen[0]);
+		$ray = <<$vec[0],$vec[1],$vec[2]>>; 
+	}
+	else
+	{
+		print("Error in getRayVector(). result is different \n");
+	}
+	return $ray;
+}
+global proc vector getcurEye(string $camera)
+{
+	float $p[]  = `camera -q -p $camera`;
+	vector $v = << $p[0], $p[1], $p[2] >>;
+	return $v;
+}
+
+global proc vector getcurLookAt(string $camera)
+{
+	float $p[]  = `camera -q -wci $camera`;
+	vector $v = << $p[0], $p[1], $p[2] >>;
+	return $v;
+}
+
+global proc vector getcurUp(string $camera)
+{
+	float $p[]  = `camera -q -wup $camera`;
+	vector $v = << $p[0], $p[1], $p[2] >>;
+	return $v;
+}
+
+
+global proc vector getPosition(string $str)
+{
+	float $x[] = `pointPosition -world $str`;
+	vector $v = <<$x[0], $x[1], $x[2]>>;
+	return $v;
+}

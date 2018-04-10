@@ -1,0 +1,11 @@
+	global proc vector[] getVertexPositions(string $vertexArray[])
+	{
+		int $i;
+		int $nVert = size($vertexArray);
+		vector $position[];
+		for( $i=0; $i<$nVert; $i++)
+		{
+			$position[$i] = getPosition($vertexArray[$i]);
+		}
+		return $position;
+	}

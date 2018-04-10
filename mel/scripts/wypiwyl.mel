@@ -1,0 +1,105 @@
+	//
+	// wypiwysCmd.mel - an implementation of view point registration by painting.
+	// How to use:
+	//   Paint vertices which want to see.
+	//   Run wypiwys procedure.
+	// System requirement : 
+	// Maya 5.0 or higher ( I believe it works well on lower version)
+	//
+	// Author : Takashi Michikawa <michi(at)den.rcast.u-tokyo.ac.jp>
+	// (c) 2008 Takashi Michikawa 
+	//
+	global proc int wypiwyl()
+	{	
+
+		string $curCamera = getCurrentCamera();
+		print ("current Camera Name:"+$curCamera+"\n");
+		
+		string $sl[] = `ls -sl`;
+		string $vertexList[] = listAllVertices($sl);
+		int $nVert = size($vertexList);
+		int $i, $j;
+		if($nVert == 0 ) 
+		{
+			print "Error. No vertices were selected\n";
+			return -1;
+		}
+		
+		float $weight[] = getVertexWeights($vertexList);    // weight;
+		vector $position[] = getVertexPositions($vertexList); // vertex position
+		//compute weight for each vertex
+		
+		
+		vector $curEye = getCurrentEye($curCamera);
+		vector $curLookAt = getCurrentLookAt($curCamera);
+		vector $curUp = getCurrentUp($curCamera);
+		float  $fieldOfView = `camera  -q -hfv $curCamera`;
+		float  $spotAngle = 45.0;//degree
+		print ("fov(rad):"+$fieldOfView+"\n");
+		print ("current Eye:"+$curEye+"\n");
+		print ("current Center:"+$curLookAt+"\n");
+		print ("current Up:"+$curUp+"\n");
+
+		//compute new center
+		vector $newLookAt =  getNewLookAt($weight, $position);
+		print ("center:"+$newLookAt+"\n");
+		
+		//compute radius
+		float $rad =  getBoundingSphereRadius($weight, $position, $newLookAt);
+		print ("Radius of the bounding sphere "+$rad+".\n");
+		
+		//compute EyeVector
+		vector $newRay = getRayVector($weight, $position, $newLookAt);
+		vector $curRay = $curEye - $curLookAt;
+		if(dot($curRay, $newRay) < 0 ) $newRay *= -1;
+		
+		float $fittingFactor = 1.5;
+		float $curRayLength = mag($newRay);
+		float $newRayLength = $fittingFactor * $rad / sin(deg_to_rad($fieldOfView));
+		
+		$newRay = unit($newRay);
+		$curRay = unit($curRay);
+		
+		float  $angle = angle($curRay, $newRay);
+		vector $axis = cross($curRay, $newRay);
+		vector $newUp  = rot($curUp, $axis, $angle);
+		$newUp = unit($newUp);
+		
+		vector $newEye = $newRayLength * $newRay + $newLookAt;
+			
+
+		//Œ‹‰Ê‚Ì‘ã“ü
+			float $ex = $newEye.x;
+			float $ey = $newEye.y;
+			float $ez = $newEye.z;
+		
+			float $cx = $newLookAt.x;
+			float $cy = $newLookAt.y;
+			float $cz = $newLookAt.z;
+		
+			float $ux = $newUp.x;
+			float $uy = $newUp.y;
+			float $uz = $newUp.z;
+		
+		//create spot light
+		
+		
+		float $nrx = $newRay.x;
+		float $nry = $newRay.y;
+		float $nrz = $newRay.z;
+		float $eu[] = `angleBetween -euler -v1 0 0 1 -v2 $nrx $nry $nrz -ch off`;
+
+		print $eu[0];
+		print "\n";
+		print $eu[1];
+		print "\n";
+		print $eu[2];
+		print ("creating cameras\n");
+		string $LightName = `spotLight -ca $spotAngle`;
+		rotate -absolute -pivot $cx $cy $cz;
+		move -ws $ex $ey $ez;
+		rotate -relative -euler $eu[0] $eu[1] $eu[2];
+		return 1;
+	}
+
+	

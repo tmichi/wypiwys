@@ -1,0 +1,48 @@
+
+global proc vector getRayVector(float $weight[], vector $point[], vector $center)
+{
+	vector $ray;
+	matrix $mat[3][3] = <<0,0,0;
+	                      0,0,0;
+	                      0,0,0>>;
+	int $i;
+	int $nVert = size($weight);
+	print ("num : "+$nVert+"\n");
+	if($nVert == size($point) )
+	{
+		//create co-variance 
+		for($i = 0 ; $i < $nVert ; $i++)
+		{
+			vector $p = $point[$i] - $center;	//normalize
+			matrix $m[3][3] = <<$p.x * $p.x ,$p.x * $p.y ,$p.x * $p.z;
+								$p.y * $p.x ,$p.y * $p.y ,$p.y * $p.z;
+								$p.z * $p.x ,$p.z * $p.y ,$p.z * $p.z >>;
+			int $j, $k;
+			for($j = 0 ; $j < 3 ; $j ++)
+			{
+				for($k = 0 ; $k < 3 ; $k++)
+				{
+					float $a = $m[$j][$k];
+					$mat[$j][$k] = $mat[$j][$k] + $a; 	
+				}
+			}
+		}
+		float $matrix[9];
+		for($j = 0 ; $j < 3 ; $j ++)
+		{
+			for($k = 0 ; $k < 3 ; $k++)
+			{
+				$matrix[$j*3+$k] = $mat[$j][$k]; 	
+			}
+		}
+		
+		float $eigen[] = getEigenValues($matrix);
+		float $vec[] = getEigenVector($matrix,$eigen[0]);
+		$ray = <<$vec[0],$vec[1],$vec[2]>>; 
+	}
+	else
+	{
+		print("Error in getRayVector(). result is different \n");
+	}
+	return $ray;
+}

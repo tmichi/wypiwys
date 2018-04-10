@@ -1,0 +1,119 @@
+global proc shelf_denapp () {
+    global string $gBuffStr;
+    global string $gBuffStr0;
+    global string $gBuffStr1;
+
+
+	shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -annotation "Tumble Tool: Rotate the point of view around the centre of interest (Alt + LMB)" 
+        -label "Tumble Tool" 
+        -image1 "tumble.xpm" 
+        -style "iconOnly" 
+        -command "TumbleTool" 
+        -doubleClickCommand "ToolSettingsWindow" 
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -annotation "Track Tool: Track the camera (Alt + MMB)" 
+        -label "Track Tool" 
+        -image1 "track.xpm" 
+        -style "iconOnly" 
+        -command "TrackTool" 
+        -doubleClickCommand "ToolSettingsWindow" 
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -annotation "Dolly Tool: Move the camera in and out (Alt + LMB + MMB)" 
+        -label "Dolly Tool" 
+        -image1 "dolly.xpm" 
+        -style "iconOnly" 
+        -command "DollyTool" 
+        -doubleClickCommand "ToolSettingsWindow" 
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -annotation "Paint Selection Tool: Paint selection of CVs, vertices, faces, and edges" 
+        -label "Paint Selection Tool" 
+        -image1 "artSelect.xpm" 
+        -style "iconOnly" 
+        -command "ArtPaintSelectTool" 
+        -doubleClickCommand "ArtPaintSelectToolOptions" 
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -annotation "wypiwys" 
+        -label "wypiwys : view point registration by painting" 
+        -imageOverlayLabel "wypiwys : view point registration by painting" 
+        -image1 "wypiwys.bmp" 
+        -style "iconOnly" 
+        -command "wypiwys" 
+    ;
+	  shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -annotation "wypiwyl" 
+        -label "wypiwyl : light registration by painting" 
+        -imageOverlayLabel "wypiwyl : light registration by painting" 
+        -image1 "wypiwyl.bmp" 
+        -style "iconOnly" 
+        -command "wypiwyl" 
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -annotation "select -cl" 
+        -label "clear Selected Items" 
+        -imageOverlayLabel "clear Selected Items" 
+        -image1 "unselect.bmp" 
+        -style "iconOnly" 
+        -command "select -cl" 
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 34
+        -height 34
+        -manage 1
+        -visible 1
+        -annotation "viewInit" 
+        -label "Init View" 
+        -imageOverlayLabel "Init View" 
+        -image1 "initview.bmp" 
+        -style "iconOnly" 
+        -command "viewFit -all" 
+    ;
+} 

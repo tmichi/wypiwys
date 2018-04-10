@@ -1,0 +1,7 @@
+
+	global proc vector getCurrentUp(string $camera)
+	{
+		float $p[]  = `camera -q -wup $camera`;
+		vector $v = << $p[0], $p[1], $p[2] >>;
+		return $v;
+	}

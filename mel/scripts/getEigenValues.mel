@@ -1,0 +1,12 @@
+global proc float[] getEigenValues(float $m[])
+{
+	float $eigenvalue[];
+	
+	float $a = 1;
+	float $b =  -$m[0] - $m[4] - $m[8];
+	float $c = 	- $m[1]*$m[3] - $m[2]*$m[6] - $m[5]*$m[7]
+				+ $m[0]*$m[4] + $m[4]*$m[8] + $m[0]*$m[8]; 
+	float $d =	- $m[0]*$m[4]*$m[8] + $m[0]*$m[5]*$m[7]- $m[1]*$m[5]*$m[6] 
+				+ $m[1]*$m[3]*$m[8] - $m[2]*$m[3]*$m[7] +$m[2]*$m[4]*$m[6];
+	return solveCubicEquation($a, $b, $c, $d);
+}

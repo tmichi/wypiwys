@@ -1,0 +1,6 @@
+	global proc vector getPosition(string $str)
+	{
+		float $x[] = `pointPosition -world $str`;
+		vector $v = <<$x[0], $x[1], $x[2]>>;
+		return $v;
+	}

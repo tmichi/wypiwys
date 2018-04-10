@@ -1,0 +1,75 @@
+
+//ls -sl の出力をばらばらにする
+global proc string[] listAllVertices(string $select[])
+{
+	string $vertexArray[];
+	int $numVertex = size($select);
+	int $i;
+	int $count = 0;
+
+	for( $i=0 ; $i<$numVertex; $i++)
+	{
+		string $buf[]; //buffer after tokenization	
+		tokenize $select[$i] ".[:]" $buf;
+		string $objName = $buf[0];
+	
+		//頂点チェック
+		if($buf[1] == "vtx")
+		{
+			if(size($buf) == 3)
+			{
+				$buf[3] = $buf[2];
+			}
+			int $start = $buf[2];
+			int $end = $buf[3];
+			
+			int $j ;
+			for($j = $start ; $j < $end ; $j++)
+			{
+				$vertexArray[$count] = $objName+".vtx["+$j+"]";
+				$count++;		
+			}
+		}
+		// ポリゴンだった場合
+		else if ($buf[1] == "f")
+		{	
+			if(size($buf) == 3)
+			{
+				$buf[3] = $buf[2];
+			}
+			int $start = $buf[2];
+			int $end = $buf[3];
+			
+			int $j ;
+			for($j = $start ; $j < $end ; $j++)
+			{
+				string $face = $objName+".f["+$j+"]";
+				string $vOnF[] = `polyInfo -fv $face`;
+				string $vOnFBuf[];
+				tokenize $vOnF[0] " :" $vOnFBuf;
+				int $k; 
+				for($k = 2 ; $k < size($vOnFBuf) -1 ; $k++)
+				{
+					$vertexArray[$count] = $objName+".vtx["+$vOnFBuf[$k]+"]";
+					$count++;		
+				}
+			}
+		}
+	}
+	string $resultArray[];
+	if(size($vertexArray) != 0)
+	{
+		sort($vertexArray);
+		print (size($vertexArray));
+		int $arrayCount = 0;
+		$resultArray[0] = $vertexArray[0];
+		for($i = 1 ; $i < size($vertexArray) ; $i++)
+		{
+			if($vertexArray[$i] == $resultArray[$arrayCount]) continue;
+			$resultArray[$arrayCount] = $vertexArray[$i];
+			$arrayCount++;
+		}
+	}
+	
+	return $resultArray;
+}

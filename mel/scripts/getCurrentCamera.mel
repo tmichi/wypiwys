@@ -1,0 +1,16 @@
+// getcurCamera.mel
+// get current active camera
+// Origital code by Bryan Ewert
+// Copyright c2005 by Bryan Ewert, maya@ewertb.com
+global proc string getCurrentCamera()
+{
+	string $cameraName;	
+	string $panel = `getPanel -wf`;
+	// Compare the panel's type to confirm it is a "modelPanel"
+	if ( "modelPanel" == `getPanel -to $panel` )
+	{
+    	// Get the name of the camera using the modelEditor command
+    	$cameraName = `modelEditor -q -camera $panel`;
+	}
+	return $cameraName;
+}

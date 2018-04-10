@@ -1,0 +1,31 @@
+proc vector getTriangleArea(string $vx0,string $vx1,string $vx2)
+{
+	vector $p0 = getPosition($vx0);
+	vector $p1 = getPosition($vx1);
+	vector $p2 = getPosition($vx2);
+	vector $v0 = $p1 - $p0;
+	vector $v1 = $p2 - $p0;
+	vector $n  = cross($v0, $v1);
+	return mag($n);
+}
+
+global proc float getPolygonArea(string $face)
+{
+	string $neighborVertex[] = `polyInfo -fv $face`;
+	string $buf[];
+	
+	tokenize $face "." $buf;
+	string $objName = $buf[0];
+		
+	tokenize $neighborVertex[0] ": " $buf;
+	int $end = size($buf);
+	float $area = 0;
+
+	for($j = 2 ; $j < $end - 3 ; $j++)
+	{
+		$area += getTriangleArea($objName+".vtx["+$buf[$j]+"]",
+			                     $objName+".vtx["+$buf[$j+1]+"]",
+			                     $objName+".vtx["+$buf[$j+2]+"]");
+	}
+	return $area;
+}

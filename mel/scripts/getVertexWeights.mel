@@ -1,0 +1,28 @@
+global proc float[] getVertexWeights(string $vertexArray[])
+	{
+		int $i;
+		int $nVert = size($vertexArray);
+		float $weight[];
+		for( $i=0; $i<$nVert; $i++)
+		{
+			$weight[$i] = 0;
+			string $buf[];
+			tokenize $vertexArray[$i] "." $buf;
+			string $objName = $buf[0];
+			
+			string $neighborFaces[] = `polyInfo -vf $vertexArray[$i]`;
+			tokenize $neighborFaces[0] $buf;
+			int $end = size($buf);
+			for($j = 2 ; $j < $end ; $j += 1)
+			{
+				$weight[$i] += getPolygonArea($objName+".f["+ $buf[$j ]+"]");
+			}
+		}
+		return $weight;
+	}
+
+
+
+
+
+

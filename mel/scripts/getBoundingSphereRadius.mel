@@ -1,0 +1,15 @@
+
+	global proc float getBoundingSphereRadius(float $weight[], vector $position[],vector $newLookAt)
+	{
+		float $rad = 0;
+		int $nVert = size($weight);
+		
+		for( $i=0 ; $i < $nVert ; $i++)
+		{
+			vector $p =  $position[$i] - $newLookAt;
+			float $newrad = mag($p);
+			if($newrad > $rad) $rad = $newrad;
+		}
+		print ("Radius of the bounding sphere "+$rad+".\n");
+		return $rad;
+	}

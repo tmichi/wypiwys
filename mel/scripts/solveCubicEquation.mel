@@ -1,0 +1,75 @@
+global proc float[] solveCubicEquation(float $a, float $b, float $c, float $d)
+{
+	int $count = 0;
+	float $x[];
+	if(abs($a) < 0.00000001)
+	{
+		if(abs($b) < 0.00000001)
+		{
+			if(abs($c) < 0.00000001)
+			{
+				print("Error. all cofficients are zero.\n");
+			}
+			else
+			{
+				$x[$count] = $d / $c;
+				$count++;
+			}	
+		}
+		else
+		{
+			//SquareEquation
+			$x[$count] = 0;
+			$count++;
+			float $D = $c * $c - 4 * $b * $d;
+			if( $D >= 0)
+			{
+				$x[$count] = (-$c - sqrt($D))/ (4 * $b );	
+				$count++;
+				$x[$count] = (-$c + sqrt($D))/ (4 * $b );	
+				$count++;
+			}
+		}
+	}
+	else //$a != 0
+	{
+		float $x1 = 0;
+		float $x2 = 0;
+		//solve one of three
+		while(1)
+		{
+			float $fx = $a * $x1 * $x1 * $x1 + $b * $x1 * $x1 + $c * $x1 + $d; // a x^3+ bx^2 + cx +d
+ 			float $dfx = 3 * $a * $x1 * $x1 +  2 * $b * $x1  + $c; // 3ax^2 + 2bx +c
+			if(abs($dfx) < 1.0e-10) 
+			{
+				$x1 = 1;
+				continue;
+			}
+			$x2 = $x1 - $fx/$dfx;
+			if(abs($x1-$x2) < 1.0e-10) break;
+			$x1 = $x2;
+		}
+		$x[$count] = $x1;
+		$count ++;
+		
+		float $aa = $a;   
+		float $bb = $b + $aa * $x1;
+		float $cc = $c + $bb * $x1; 
+		float $D  = $bb*$bb - 4 * $aa * $cc;
+		if( $D >= 0)
+		{
+			float $sqrtD = sqrt($D);
+			$x[$count] = (-$bb - $sqrtD) / (2 * $aa);
+			$count ++;
+			$x[$count] = (-$bb + $sqrtD) / (2 * $aa);
+			$count ++;
+		}
+	}
+	sort($x);
+	
+	for($i = 0 ; $i < size($x) ; $i++)
+	{
+		print ("e"+$i+":"+$x[$i]+"\n");	
+	}
+	return $x;
+}

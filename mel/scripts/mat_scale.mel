@@ -1,0 +1,15 @@
+
+
+
+
+//m3 = s * $m1
+global proc float[] mat_scale(float $m1[], float $s)
+{
+	float $m3[9];
+	int $i;
+	for($i  = 0 ; $i < 9 ; $i++)
+	{
+		$m3[$i] = $s * $m1[$i];
+	}
+	return $m3;
+}

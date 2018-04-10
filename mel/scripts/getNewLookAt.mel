@@ -1,0 +1,29 @@
+	global proc vector getNewLookAt(float $weight[], vector $position[])
+	{
+		vector $newLookAt = <<0,0,0>>;
+		float $areaSum = 0;
+		
+		int $nVert = size($weight);
+		for( $i=0 ; $i < $nVert ; $i++)
+		{
+			vector $p =  $weight[ $i ] *  $position[$i];
+			$newLookAt += $p;	
+			$areaSum += $weight[$i];
+		}
+		if($areaSum > 0.001)
+		{
+			$newLookAt /=  $areaSum;
+		}
+		else
+		{
+			print("warning. we used normal center point due to area = "+$areaSum+"\n");
+			for( $i=0 ; $i < $nVert ; $i++)
+			{
+				vector $p = $position[$i];
+				$newLookAt += $p;	
+			}
+			$newLookAt /= $nVert;
+		}
+		print ("center:"+$newLookAt+"\n");
+		return $newLookAt;
+	}
